@@ -10,34 +10,50 @@
     <link rel="manifest" href="manifest.json">
   </head>
 
-  <body class="text-center">
+  <body>
     <header class="flex">
-      <h1>{{ APP NAME }}</h1>
+      <h1>SmartLamp</h1>
     </header>
     <div class="container">
-      <div class="color-picker">
-        <img src="color.png" alt="Color Picker">
-        <div class="inner-picker"></div>
-      </div>
+      <form method="get" id="submitForm">
+        <div class="row-color">
+          <div class="left">
+            <div class="color-picker">
+              <!-- <canvas id="colors" width="400" height="400"></canvas> -->
+              <canvas id="colors" onmousemove="echoColor(event)"></canvas>
+              <div class="inner-picker"></div>
+            </div>
+          </div>
+          <div class="right">
+            <input type="range" name="brightness" min="0" max="255" class="slider">
+          </div>
+        </div>
 
-      <form method="get">
-        <input type="number" name="red" class="red" hidden>
-        <input type="number" name="green" class="green" hidden>
-        <input type="number" name="blue" class="blue" hidden>
-        <input type="range" name="brightness" min="0" max="255" class="slider">
+        <input type="number" name="red" class="red" value="255" hidden>
+        <input type="number" name="green" class="green" value="0" hidden>
+        <input type="number" name="blue" class="blue" value="0" hidden>
         <br />
-        <button type="submit" class="btn">Apply</button>
+        <div class="flex mt-1">
+          <button type="button" class="btn reset" onmouseup="reset()">Manual</button>
+          <button type="submit" class="btn apply">Apply</button>
+        </div>
       </form>
     </div>
 
-    <footer>
+    <footer class="text-center">
       <form method="get">
         <input type="text" name="power" hidden>
-        <button type="submit" class="power">I</button>
+        <button type="submit" class="power">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path style="fill: white;"
+              d="M14 12h-4v-12h4v12zm4.213-10.246l-1.213 1.599c2.984 1.732 5 4.955 5 8.647 0 5.514-4.486 10-10 10s-10-4.486-10-10c0-3.692 2.016-6.915 5-8.647l-1.213-1.599c-3.465 2.103-5.787 5.897-5.787 10.246 0 6.627 5.373 12 12 12s12-5.373 12-12c0-4.349-2.322-8.143-5.787-10.246z" />
+          </svg>
+        </button>
       </form>
     </footer>
 
     <script>
+      // console.log(localStorage.getItem("lamp"));
       window.addEventListener("load", () => {
         registerServiceWorker();
       })
@@ -53,49 +69,75 @@
         }
       }
 
-    </script>
+      let canvas = document.getElementById("colors");
+      let graphics = canvas.getContext("2d");
 
-    <script>
-      const getSpectrumWrapper = () => document.querySelector(".color-picker");
+      canvas.height = canvas.offsetHeight
+      canvas.width = canvas.offsetWidth
 
-      const spectrumRanges = [
-        { from: [255, 0, 0], to: [255, 255, 0] },
-        { from: [255, 255, 0], to: [0, 255, 0] },
-        { from: [0, 255, 0], to: [0, 255, 255] },
-        { from: [0, 255, 255], to: [0, 0, 255] },
-        { from: [0, 0, 255], to: [255, 0, 255] },
-        { from: [255, 0, 255], to: [255, 0, 0] }
-      ];
+      var CX = canvas.width / 2,
+        CY = canvas.height / 2,
+        sx = CX,
+        sy = CY;
 
-      const findColorValue = (from, to, leftRatio) => {
-        return Math.round(from + (to - from) * leftRatio);
-      };
+      for (var i = 0; i < 360; i += 0.1) {
+        var rad = i * (2 * Math.PI) / 360;
+        graphics.strokeStyle = "hsla(" + i + ", 100%, 50%, 1.0)";
+        graphics.beginPath();
+        graphics.moveTo(CX, CY);
+        graphics.lineTo(CX + sx * Math.cos(rad), CY + sy * Math.sin(rad));
+        graphics.stroke();
+      }
 
-      const findRgbFromMousePosition = (event) => {
-        const wrapper = getSpectrumWrapper();
-        const { clientX } = event;
-        const { left, width } = wrapper.getBoundingClientRect();
-        const leftDistance = Math.min(Math.max(clientX - left, 0), width - 1);
-        const totalRanges = spectrumRanges.length;
-        const rangeWidth = width / totalRanges;
-        const includedRange = Math.floor(leftDistance / rangeWidth);
-        const leftRatio = ((leftDistance % rangeWidth) / rangeWidth).toFixed(2);
-        const { from, to } = spectrumRanges[includedRange];
-        return {
-          r: findColorValue(from[0], to[0], leftRatio),
-          g: findColorValue(from[1], to[1], leftRatio),
-          b: findColorValue(from[2], to[2], leftRatio)
-        };
-      };
+      canvas.addEventListener("onmouseover", (e) => {
+        echoColor(e)
+        console.log("asd");
+      })
 
-      getSpectrumWrapper().addEventListener("mousemove", (e) => {
-        const { r, g, b } = findRgbFromMousePosition(e);
-        document.querySelector(".red").value = r;
-        document.querySelector(".green").value = g;
-        document.querySelector(".blue").value = b;
-        document.querySelector(".inner-picker").style.backgroundColor = `rgb(${r}, ${g}, ${b}`
-      });
+      function echoColor(e) {
+        var imgData = graphics.getImageData(e.layerX, e.layerY, 2, 2);
+        let r = imgData.data[0];
+        let g = imgData.data[1];
+        let b = imgData.data[2];
 
+        function ifColorExist(color) {
+          if (r != 0 || g != 0 || b != 0) {
+            return color
+          }
+        }
+
+        let red = ifColorExist(r)
+        let green = ifColorExist(g)
+        let blue = ifColorExist(b)
+
+        document.querySelector(".red").value = red
+        document.querySelector(".green").value = green
+        document.querySelector(".blue").value = blue
+        document.querySelector(".inner-picker").style.backgroundColor = `rgb(${red}, ${green}, ${blue}`
+      }
+
+      function submit() {
+        document.getElementById("submitForm").submit();
+        let brightness = document.querySelector(".slider").value;
+        let set = {
+          red: r,
+          green: g,
+          blue: b,
+          brightness: brightness
+        }
+        localStorage.setItem("lamp", JSON.stringify(set))
+      }
+
+      function reset() {
+        document.querySelector(".red").value = 255
+        document.querySelector(".green").value = 0
+        document.querySelector(".blue").value = 0
+        document.querySelector(".slider").value = 128;
+
+        document.getElementById("submitForm").submit();
+        console.log(1);
+
+      }
     </script>
   </body>
 
