@@ -14,14 +14,28 @@
     <header class="flex">
       <h1>SmartLamp</h1>
     </header>
-    <div class="container">
+    <div class="container mt-2">
       <form method="get" id="submitForm">
         <div class="row-color">
           <div class="left">
             <div class="color-picker">
               <!-- <canvas id="colors" width="400" height="400"></canvas> -->
               <canvas id="colors" onmousemove="echoColor(event)"></canvas>
-              <div class="inner-picker"></div>
+              <div id="inner-picker"></div>
+              <div id="color-slider">
+                <div class="mt-3">
+                  <label for="red">Red</label>
+                  <input type="range" name="red" id="red" min="0" max="255" value="255">
+                </div>
+                <div class="mt-3">
+                  <label for="green">Green</label>
+                  <input type="range" name="green" id="green" min="0" max="255" value="0">
+                </div>
+                <div class="mt-3">
+                  <label for="blue">Blue</label>
+                  <input type="range" name="blue" id="blue" min="0" max="255" value="0">
+                </div>
+              </div>
             </div>
           </div>
           <div class="right">
@@ -29,12 +43,9 @@
           </div>
         </div>
 
-        <input type="number" name="red" class="red" value="255" hidden>
-        <input type="number" name="green" class="green" value="0" hidden>
-        <input type="number" name="blue" class="blue" value="0" hidden>
         <br />
         <div class="flex mt-1">
-          <button type="button" class="btn reset" onmouseup="reset()">Manual</button>
+          <button type="button" class="btn reset" onclick="manualOption()">Manual</button>
           <button type="submit" class="btn apply">Apply</button>
         </div>
       </form>
@@ -110,10 +121,10 @@
         let green = ifColorExist(g)
         let blue = ifColorExist(b)
 
-        document.querySelector(".red").value = red
-        document.querySelector(".green").value = green
-        document.querySelector(".blue").value = blue
-        document.querySelector(".inner-picker").style.backgroundColor = `rgb(${red}, ${green}, ${blue}`
+        document.getElementById("red").value = red
+        document.getElementById("green").value = green
+        document.getElementById("blue").value = blue
+        document.getElementById("inner-picker").style.backgroundColor = `rgb(${red}, ${green}, ${blue}`
       }
 
       function submit() {
@@ -128,15 +139,15 @@
         localStorage.setItem("lamp", JSON.stringify(set))
       }
 
-      function reset() {
-        document.querySelector(".red").value = 255
-        document.querySelector(".green").value = 0
-        document.querySelector(".blue").value = 0
-        document.querySelector(".slider").value = 128;
+      let hiddenColors = false
+      document.getElementById("color-slider").style = "visibility:hidden"
+      function manualOption() {
+        hiddenColors = !hiddenColors
+        document.getElementById("colors").style = (hiddenColors) ? "display:none" : "display:block"
+        document.getElementById("inner-picker").style = (hiddenColors) ? "display:none" : "display:block"
 
-        document.getElementById("submitForm").submit();
-        console.log(1);
-
+        document.getElementById("color-slider").style = (hiddenColors) ? "visibility:unset" : "visibility:hidden"
+        document.querySelector(".reset").innerText = (hiddenColors) ? "BACK" : "MANUAL"
       }
     </script>
   </body>
