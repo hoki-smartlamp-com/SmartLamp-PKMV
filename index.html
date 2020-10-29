@@ -185,17 +185,6 @@
       }
 
       let hex = document.getElementById("hex")
-      function applyChange() {
-        let brightnessValue = brightness.value * 1 / 255
-        let value = hexToRgb(hex.value)
-
-        try {
-          document.getElementById("inner-picker").style.backgroundColor = `rgba(${value.red}, ${value.green}, ${value.blue}, ${brightnessValue})`
-          modalEdit()
-        }
-        catch { }
-      }
-
       hex.addEventListener("input", (e) => {
         let value = e.target.value.match(/^#[a-fA-F0-9]{6}$/g)
         let button = document.querySelector(".apply")
@@ -208,6 +197,20 @@
           button.disabled = false
         }
       })
+
+      function applyChange() {
+        let brightnessValue = brightness.value * 1 / 255
+        let value = hexToRgb(hex.value)
+
+        try {
+          document.getElementById("red").value = value.red
+          document.getElementById("green").value = value.green
+          document.getElementById("blue").value = value.blue
+          document.getElementById("inner-picker").style.backgroundColor = `rgba(${value.red}, ${value.green}, ${value.blue}, ${brightnessValue})`
+          modalEdit()
+        }
+        catch { }
+      }
 
       function submit() {
         document.getElementById("submitForm").submit();
