@@ -15,10 +15,6 @@ self.addEventListener("install", async () => {
   return self.skipWaiting();
 });
 
-self.addEventListener("activate", () => {
-  self.client.claim();
-});
-
 self.addEventListener("fetch", async (e) => {
   const req = e.request;
   const url = new URL(req.url);
@@ -27,6 +23,10 @@ self.addEventListener("fetch", async (e) => {
 
   if (url.origin === location.origin) e.respondWith(cacheFirst(req));
   else e.respondWith(networkAndCache(req));
+});
+
+self.addEventListener("activate", () => {
+  self.client.claim();
 });
 
 async function cacheFirst(req) {

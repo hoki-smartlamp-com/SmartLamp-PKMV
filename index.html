@@ -13,7 +13,27 @@
   <body>
     <header class="flex">
       <h1>SmartLamp</h1>
+
+      <button id="edit" onclick="modalEdit()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="white" width="24" height="24" viewBox="0 0 24 24">
+          <path
+            d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z" />
+        </svg>
+      </button>
     </header>
+
+    <div class="modal hidden">
+      <div class="container">
+        <h3>Edit Color</h3>
+        <p class="mt-1">Edit dengan kode warna</p>
+        <input type="text" placeholder="contoh: #e62a2a" name="hex" id="hex" class="mt-2">
+        <div class="flex mt-2">
+          <button class="btn cancel" onclick="modalEdit()">Cancel</button>
+          <button class="btn apply" onclick="applyChange()">Apply</button>
+        </div>
+      </div>
+    </div>
+
     <div class="container mt-2">
       <form method="get" id="submitForm">
         <div class="row-color">
@@ -23,29 +43,34 @@
               <canvas id="colors" onmousemove="echoColor(event)"></canvas>
               <div id="inner-picker"></div>
               <div id="color-slider">
-                <div class="mt-3">
+                <div class="mt-3 rgb">
                   <label for="red">Red</label>
                   <input type="range" name="red" id="red" min="0" max="255" value="255">
                 </div>
-                <div class="mt-3">
+                <div class="mt-3 rgb">
                   <label for="green">Green</label>
                   <input type="range" name="green" id="green" min="0" max="255" value="0">
                 </div>
-                <div class="mt-3">
+                <div class="mt-3 rgb">
                   <label for="blue">Blue</label>
                   <input type="range" name="blue" id="blue" min="0" max="255" value="0">
                 </div>
               </div>
             </div>
           </div>
-          <div class="right">
-            <input type="range" name="brightness" min="0" max="255" class="slider">
+          <div class="right text-center">
+            <input type="range" name="brightness" id="brightness" min="0" max="255" value="255" class="slider ml-1">
+            <svg fill="white" width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd"
+              clip-rule="evenodd" class="ml-1 mt-1">
+              <path
+                d="M13 24h-2c-.288 0-.563-.125-.753-.341l-.576-.659h4.658l-.576.659c-.19.216-.465.341-.753.341zm1.867-3c.287 0 .52.224.52.5s-.233.5-.52.5h-5.734c-.287 0-.52-.224-.52-.5s.233-.5.52-.5h5.734zm-2.871-17c2.983 0 6.004 1.97 6.004 5.734 0 1.937-.97 3.622-1.907 5.252-.907 1.574-1.843 3.201-1.844 5.014h1.001c0-3.286 3.75-6.103 3.75-10.266 0-4.34-3.502-6.734-7.004-6.734-3.498 0-6.996 2.391-6.996 6.734 0 4.163 3.75 6.98 3.75 10.266h.999c.001-1.813-.936-3.44-1.841-5.014-.938-1.63-1.908-3.315-1.908-5.252 0-3.764 3.017-5.734 5.996-5.734zm9.428 7.958c.251.114.362.411.248.662-.114.251-.41.363-.662.249l-.91-.414c-.252-.114-.363-.41-.249-.662.114-.251.411-.362.662-.248l.911.413zm-18.848 0c-.251.114-.362.411-.248.662.114.251.41.363.662.249l.91-.414c.252-.114.363-.41.249-.662-.114-.251-.411-.362-.662-.248l-.911.413zm18.924-2.958h-1c-.276 0-.5-.224-.5-.5s.224-.5.5-.5h1c.276 0 .5.224.5.5s-.224.5-.5.5zm-18-1c.276 0 .5.224.5.5s-.224.5-.5.5h-1c-.276 0-.5-.224-.5-.5s.224-.5.5-.5h1zm16.818-3.089c.227-.158.284-.469.126-.696-.157-.227-.469-.283-.696-.126l-.821.57c-.227.158-.283.469-.126.696.157.227.469.283.696.126l.821-.57zm-16.636 0c-.227-.158-.284-.469-.126-.696.157-.227.469-.283.696-.126l.821.57c.227.158.283.469.126.696-.157.227-.469.283-.696.126l-.821-.57zm13.333-3.033c.134-.241.048-.546-.193-.68-.241-.135-.546-.048-.68.192l-.488.873c-.135.241-.048.546.192.681.241.134.546.048.681-.193l.488-.873zm-10.03 0c-.134-.241-.048-.546.193-.68.241-.135.546-.048.68.192l.488.873c.135.241.048.546-.192.681-.241.134-.546.048-.681-.193l-.488-.873zm5.515-1.378c0-.276-.224-.5-.5-.5s-.5.224-.5.5v1c0 .276.224.5.5.5s.5-.224.5-.5v-1z" />
+            </svg>
           </div>
         </div>
 
         <br />
-        <div class="flex mt-1">
-          <button type="button" class="btn reset" onclick="manualOption()">Manual</button>
+        <div class="flex mt-2">
+          <button type="button" class="btn manual" onclick="manualOption()">Manual</button>
           <button type="submit" class="btn apply">Apply</button>
         </div>
       </form>
@@ -102,7 +127,32 @@
 
       canvas.addEventListener("onmouseover", (e) => {
         echoColor(e)
-        console.log("asd");
+      })
+
+      let modalClass = document.querySelector(".modal")
+      let showEdit = false;
+      function modalEdit() {
+        showEdit = !showEdit
+        if (showEdit)
+          modalClass.classList.remove("hidden")
+        else
+          modalClass.classList.add("hidden")
+      }
+      window.onclick = function (event) {
+        if (event.target == modalClass) {
+          showEdit = !showEdit
+          modalClass.classList.add('hidden');
+        }
+      }
+
+      let brightness = document.querySelector(".slider");
+      brightness.addEventListener("input", (e) => {
+        let value = e.target.value * 1 / 255
+        let red = document.getElementById("red").value
+        let green = document.getElementById("green").value
+        let blue = document.getElementById("blue").value
+
+        document.getElementById("inner-picker").style.backgroundColor = `rgba(${red}, ${green}, ${blue}, ${value})`
       })
 
       function echoColor(e) {
@@ -111,43 +161,90 @@
         let g = imgData.data[1];
         let b = imgData.data[2];
 
-        function ifColorExist(color) {
-          if (r != 0 || g != 0 || b != 0) {
-            return color
-          }
+        let brightnessValue = brightness.value * 1 / 255
+
+        let red = r
+        let green = g
+        let blue = b
+
+        if (r != 0 || g != 0 || b != 0) {
+          document.getElementById("red").value = red
+          document.getElementById("green").value = green
+          document.getElementById("blue").value = blue
+          document.getElementById("inner-picker").style.backgroundColor = `rgba(${red}, ${green}, ${blue}, ${brightnessValue})`
         }
-
-        let red = ifColorExist(r)
-        let green = ifColorExist(g)
-        let blue = ifColorExist(b)
-
-        document.getElementById("red").value = red
-        document.getElementById("green").value = green
-        document.getElementById("blue").value = blue
-        document.getElementById("inner-picker").style.backgroundColor = `rgb(${red}, ${green}, ${blue}`
       }
+
+      function hexToRgb(hex) {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+          red: parseInt(result[1], 16),
+          green: parseInt(result[2], 16),
+          blue: parseInt(result[3], 16)
+        } : null;
+      }
+
+      let hex = document.getElementById("hex")
+      function applyChange() {
+        let brightnessValue = brightness.value * 1 / 255
+        let value = hexToRgb(hex.value)
+
+        try {
+          document.getElementById("inner-picker").style.backgroundColor = `rgba(${value.red}, ${value.green}, ${value.blue}, ${brightnessValue})`
+          modalEdit()
+        }
+        catch { }
+      }
+
+      hex.addEventListener("input", (e) => {
+        let value = e.target.value.match(/^#[a-fA-F0-9]{6}$/g)
+        let button = document.querySelector(".apply")
+
+        if (!value) {
+          hex.classList.add("isnothex")
+          button.disabled = true
+        } else {
+          hex.classList.remove("isnothex")
+          button.disabled = false
+        }
+      })
 
       function submit() {
         document.getElementById("submitForm").submit();
-        let brightness = document.querySelector(".slider").value;
         let set = {
           red: r,
           green: g,
           blue: b,
-          brightness: brightness
+          brightness: brightness.value
         }
         localStorage.setItem("lamp", JSON.stringify(set))
       }
 
       let hiddenColors = false
-      document.getElementById("color-slider").style = "visibility:hidden"
+      let color_slider = document.getElementById("color-slider")
+      color_slider.classList.add("hide")
+
       function manualOption() {
         hiddenColors = !hiddenColors
-        document.getElementById("colors").style = (hiddenColors) ? "display:none" : "display:block"
-        document.getElementById("inner-picker").style = (hiddenColors) ? "display:none" : "display:block"
 
-        document.getElementById("color-slider").style = (hiddenColors) ? "visibility:unset" : "visibility:hidden"
-        document.querySelector(".reset").innerText = (hiddenColors) ? "BACK" : "MANUAL"
+        let inner_picker = document.getElementById("inner-picker")
+        let colorbg = document.querySelector(".color-picker")
+        let color = document.getElementById("colors")
+
+        document.querySelector(".manual").innerText = (hiddenColors) ? "BACK" : "MANUAL"
+
+        if (hiddenColors) {
+          color_slider.classList.remove("hide")
+          color.classList.add("hide")
+          inner_picker.classList.add("hide")
+          colorbg.classList.add("remove-before")
+        }
+        else {
+          color_slider.classList.add("hide")
+          color.classList.remove("hide")
+          inner_picker.classList.remove("hide")
+          colorbg.classList.remove("remove-before")
+        }
       }
     </script>
   </body>
