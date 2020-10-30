@@ -152,7 +152,18 @@
         buttonPower.classList.remove("off")
       }
 
+      function loadingState() {
+        let newLoading = document.createElement("div")
+        let loader = document.createElement("div")
+        newLoading.classList.add("loading")
+        loader.classList.add("loader")
+
+        newLoading.appendChild(loader)
+        document.body.appendChild(newLoading)
+      }
+
       function powerClicked() {
+        loadingState()
         power = !JSON.parse(power)
         document.getElementById("power").value = power
         localStorage.setItem("power", power)
@@ -291,8 +302,7 @@
       }
 
       function submitColor() {
-        // document.getElementById("submitForm").submit();
-        console.log(1);
+        loadingState()
         let set = {
           red: red.value,
           green: green.value,

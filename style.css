@@ -213,7 +213,8 @@ input[type="range"]:disabled {
   visibility: hidden !important;
   transition: 0.7s all;
 }
-.modal {
+.modal,
+.loading {
   opacity: 1;
   position: fixed;
   z-index: 10;
@@ -277,4 +278,23 @@ footer {
   width: 100%;
   position: absolute;
   bottom: 0;
+}
+.loader {
+  margin: auto;
+  border: 5px solid #ffffffa6;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+  border-top: 5px solid #ffffff;
+  border-bottom: 5px solid #ffffff;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
