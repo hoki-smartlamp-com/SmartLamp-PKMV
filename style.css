@@ -283,8 +283,8 @@ footer {
   margin: auto;
   border: 5px solid #ffffffa6;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 10vw;
+  height: 10vw;
   -webkit-animation: spin 2s linear infinite; /* Safari */
   animation: spin 2s linear infinite;
   border-top: 5px solid #ffffff;
