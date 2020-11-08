@@ -181,6 +181,7 @@ export default {
   methods: {
     setColorWithHex() {
       this.hexToRgb(this.hex);
+      this.$store.dispatch("setModalColor");
     },
     hexToRgb(hex) {
       var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);

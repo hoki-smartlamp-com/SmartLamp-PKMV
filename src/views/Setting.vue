@@ -59,6 +59,9 @@ export default {
     },
     dialog: false
   }),
+  mounted() {
+    this.user = this.$store.state.user;
+  },
   computed: {},
   watch: {
     "$store.state.user": function(e) {
