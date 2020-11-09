@@ -348,10 +348,10 @@ const char index_html[] PROGMEM = R"=====(
         <div class="container">
           <h3>Connect to your WiFi</h3>
           <form action="/wifi/set" method="post">
-            <input type="text" name="ssid" id="" placeholder="SSID" class="mt-2">
-            <input type="password" name="password" id="" placeholder="Password" class="mt-2">
+            <input type="text" name="ssid" id="ssid" placeholder="SSID" class="mt-2">
+            <input type="password" name="password" id="wifi_password" placeholder="Password" class="mt-2">
             <div class="flex mt-2">
-              <button type="submit" class="btn apply">Connect</button>
+              <button type="submit" class="btn apply" onclick="connectWifi()">Connect</button>
             </div>
           </form>
         </div>
@@ -502,6 +502,22 @@ const char app_js[] PROGMEM = R"=====(
   canvas.addEventListener("onmouseover", (e) => {
     echoColor(e);
   });
+
+  let ssid = document.getElementById("ssid")
+  let wifiPassword = document.getElementById("wifi_password")
+
+  let wifi = JSON.parse(localStorage.getItem("wifi"))
+  if (wifi) {
+    ssid.value = wifi.ssid
+    wifiPassword.value = wifi.password
+  }
+
+  function connectWifi() {
+    localStorage.setItem("wifi", JSON.stringify({
+      ssid: ssid.value,
+      password: wifiPassword.value
+    }))
+  }
 
   let power = true;
   let buttonPower = document.querySelector(".power");
