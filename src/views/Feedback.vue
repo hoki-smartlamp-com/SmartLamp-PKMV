@@ -1,17 +1,48 @@
 <template>
-  <v-container class="mt-1">
-    <template v-if="!this.$store.state.notification">
+  <v-container class="px-8 mt-5">
+    <template v-if="!this.$store.state.user">
       <div class="relative">
         <div class="vertical-center">
-          <img
-            alt="Jintarkop"
-            class="main-logo"
-            src="../assets/empty-data.svg"
-          />
+          <img alt="Logo" class="main-logo" src="../assets/empty-data.svg" />
           <h3>Oops! Data kosong...</h3>
         </div>
       </div>
     </template>
+    <v-form ref="form" @submit.prevent="submit" lazy-validation>
+      <v-text-field
+        v-model="feedback.title"
+        :rules="isFilled"
+        name="title"
+        type="text"
+        color="#3076BD"
+        label="Judul"
+      ></v-text-field>
+      <v-textarea
+        v-model="feedback.body"
+        :rules="isFilled"
+        name="body"
+        label="Isi Feedback"
+        auto-grow
+      ></v-textarea>
+
+      <v-btn block dark large color="#3076BD" class="mt-5" type="submit"
+        >Kirim</v-btn
+      >
+    </v-form>
+    <v-dialog v-model="dialog" persistent max-width="290">
+      <v-card>
+        <v-card-title class>Apakah data tersebut sudah benar?</v-card-title>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="orange darken-1" text @click="dialog = false"
+            >Perbaiki</v-btn
+          >
+          <v-btn color="blue darken-1" text @click="agreeSubmit"
+            >Lanjutkan</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -19,14 +50,24 @@
 export default {
   mounted() {},
   data: () => ({
-    progressColor: {
-      brown: "#FDAE20",
-      blue: "#108fca"
+    feedback: {
+      title: "",
+      body: ""
     },
-    notifications: {}
+    dialog: false
   }),
   computed: {},
-  methods: {}
+  methods: {
+    submit() {
+      if (this.$refs.form.validate()) {
+        this.dialog = true;
+      }
+    },
+    agreeSubmit() {
+      this.$store.dispatch("sendFeedback", this.feedback);
+      this.dialog = false;
+    }
+  }
 };
 </script>
 

@@ -36,47 +36,6 @@
             @mousemove="echoColor($event)"
           ></canvas>
           <div id="inner-picker" class="ml-n1 mt-n1"></div>
-          <div id="color-slider">
-            <div class="mt-2 rgb">
-              <label for="red">Red</label>
-              <input
-                type="range"
-                name="red"
-                v-model.number="color.red"
-                @input="changeColor($event, 'red')"
-                id="red"
-                min="0"
-                max="255"
-                value="255"
-              />
-            </div>
-            <div class="mt-2 rgb">
-              <label for="green">Green</label>
-              <input
-                type="range"
-                name="green"
-                v-model.number="color.green"
-                @input="changeColor($event, 'green')"
-                id="green"
-                min="0"
-                max="255"
-                value="0"
-              />
-            </div>
-            <div class="mt-2 rgb">
-              <label for="blue">Blue</label>
-              <input
-                type="range"
-                name="blue"
-                v-model.number="color.blue"
-                @input="changeColor($event, 'blue')"
-                id="blue"
-                min="0"
-                max="255"
-                value="0"
-              />
-            </div>
-          </div>
         </div>
       </div>
       <div class="right text-center">
@@ -87,8 +46,8 @@
           @input="changeColor($event, 'bright')"
           id="bright"
           min="0"
-          max="100"
-          value="255"
+          max="150"
+          value="150"
           class="slider ml-1"
         />
         <svg
@@ -106,7 +65,77 @@
         </svg>
       </div>
     </div>
+    <v-select
+      v-model="jenisVariasi"
+      :items="listVariasi"
+      color="#3076BD"
+      :value="jenisVariasi == 0 ? 'Tanpa Variasi' : jenisVariasi"
+      name="color-variation"
+      label="Variasi Warna Lampu"
+      required
+    ></v-select>
+    <div id="color-slider">
+      <div class="mt-2 rgb">
+        <label for="red">Red</label>
+        <input
+          type="range"
+          name="red"
+          v-model.number="color.red"
+          @input="changeColor($event, 'red')"
+          id="red"
+          min="0"
+          max="255"
+          value="255"
+        />
+      </div>
+      <div class="mt-2 rgb">
+        <label for="green">Green</label>
+        <input
+          type="range"
+          name="green"
+          v-model.number="color.green"
+          @input="changeColor($event, 'green')"
+          id="green"
+          min="0"
+          max="255"
+          value="0"
+        />
+      </div>
+      <div class="mt-2 rgb">
+        <label for="blue">Blue</label>
+        <input
+          type="range"
+          name="blue"
+          v-model.number="color.blue"
+          @input="changeColor($event, 'blue')"
+          id="blue"
+          min="0"
+          max="255"
+          value="0"
+        />
+      </div>
+    </div>
     <br />
+    <v-btn
+      v-if="power"
+      block
+      dark
+      large
+      color="red darken-4"
+      class="mb-4"
+      @click="powerClicked()"
+      ><v-icon>mdi-power</v-icon>&nbsp; On</v-btn
+    >
+    <v-btn
+      v-else
+      block
+      dark
+      large
+      color="grey darken-4"
+      class="mb-4"
+      @click="powerClicked()"
+      ><v-icon>mdi-power</v-icon>&nbsp; Off</v-btn
+    >
 
     <!-- <div class="flex mt-3">
       <button type="button" class="btn manual" onclick="manualOption()">
@@ -130,6 +159,7 @@ export default {
     Modal
   },
   data: () => ({
+    listVariasi: ["Tanpa Variasi", 1, 2, 3, 4, 5, 6],
     // color: {
     //   red: 255,
     //   green: 255,
@@ -159,7 +189,7 @@ export default {
     let val = this.color;
     document.getElementById("inner-picker").style.backgroundColor = `rgba(${
       val.red
-    }, ${val.green}, ${val.blue}, ${(val.bright * 1) / 100})`;
+    }, ${val.green}, ${val.blue}, ${(val.bright * 1) / 150})`;
   },
   computed: {
     color: {
@@ -169,16 +199,35 @@ export default {
       get() {
         return this.$store.state.color;
       }
+    },
+    jenisVariasi: {
+      set(val) {
+        this.$store.dispatch("variationChanged", this.listVariasi.indexOf(val));
+      },
+      get() {
+        return this.listVariasi.indexOf(this.$store.state.variasi);
+      }
+    },
+    power: {
+      set(val) {
+        this.$store.dispatch("setPower", val);
+      },
+      get() {
+        return this.$store.state.power;
+      }
     }
   },
   watch: {
     color(val) {
       document.getElementById("inner-picker").style.backgroundColor = `rgba(${
         val.red
-      }, ${val.green}, ${val.blue}, ${(val.bright * 1) / 100})`;
+      }, ${val.green}, ${val.blue}, ${(val.bright * 1) / 150})`;
     }
   },
   methods: {
+    powerClicked() {
+      this.power = !this.power;
+    },
     setColorWithHex() {
       this.hexToRgb(this.hex);
       this.$store.dispatch("setModalColor");

@@ -23,6 +23,8 @@ export default new Vuex.Store({
       blue: 255,
       bright: 100,
     },
+    variasi: 0,
+    power: false,
   },
   mutations: {
     setUser(state, payload) {
@@ -45,6 +47,12 @@ export default new Vuex.Store({
     },
     updateUser(state, payload) {
       state.user = payload;
+    },
+    setVariation(state, payload) {
+      state.variasi = payload;
+    },
+    setPower(state, payload) {
+      state.power = payload;
     },
     // setUsername(state, payload) {
     //   state.user.username = payload;
@@ -70,26 +78,41 @@ export default new Vuex.Store({
     },
     userSignUp({ commit }, payload) {
       commit("setLoading", true);
-      firebase
-        .auth()
-        .createUserWithEmailAndPassword(payload.email, payload.password)
-        .then((firebaseUser) => {
-          db.ref("users")
-            .child(firebaseUser.user.uid)
-            .set({
-              username: payload.username,
-              email: firebaseUser.user.email,
-              role: "user",
-              lamp_id: payload.lamp_id,
-            })
-            .then(() => {
-              commit("setLoading", false);
-              router.push("/login");
-            });
-          firebase.auth().signOut();
-        })
-        .catch((error) => {
-          commit("setError", error.message);
+      db.ref(`lamp/${payload.lamp_id}`)
+        .once("value")
+        .then(function(res) {
+          if (!res.val()) {
+            // console.log(key);
+            commit(
+              "setError",
+              "Maaf, Kode seri lampu yang anda masukkan tidak ada"
+            );
+            commit("setLoading", false);
+          } // null
+          else {
+            firebase
+              .auth()
+              .createUserWithEmailAndPassword(payload.email, payload.password)
+              .then((firebaseUser) => {
+                db.ref("users")
+                  .child(firebaseUser.user.uid)
+                  .set({
+                    username: payload.username,
+                    email: firebaseUser.user.email,
+                    role: "user",
+                    lamp_id: payload.lamp_id,
+                  })
+                  .then(() => {
+                    commit("setLoading", false);
+                    router.push("/login");
+                    commit("setLoading", false);
+                  });
+                firebase.auth().signOut();
+              })
+              .catch((error) => {
+                commit("setError", error.message);
+              });
+          }
         });
     },
     getUserData({ commit }, payload) {
@@ -101,14 +124,14 @@ export default new Vuex.Store({
           (res) => {
             commit("setUser", res.val());
 
-            db.ref(`lamp/${res.val().lamp_id}`)
-              .child("warna")
-              .on("value", (data) => {
-                commit("setColor", data.val());
-                commit("setUID", payload);
-                commit("setLoading", false);
-                commit("setError", null);
-              });
+            db.ref(`lamp/${res.val().lamp_id}`).on("value", (data) => {
+              commit("setColor", data.val().warna);
+              commit("setVariation", data.val().variasi);
+              commit("setPower", data.val().power);
+              commit("setUID", payload);
+              commit("setLoading", false);
+              commit("setError", null);
+            });
 
             if (router.history.current.path == "/login") {
               router.push("/");
@@ -130,10 +153,11 @@ export default new Vuex.Store({
         .then(() => router.replace("/login"));
       commit("setUser", null);
     },
-    setColor({ state }, payload) {
+    setColor({ dispatch, state }, payload) {
       db.ref(`lamp/${state.user.lamp_id}`)
         .child("warna")
         .set(payload);
+      dispatch("variationChanged", 0);
     },
     setModalColor({ commit }) {
       commit("setModalColor");
@@ -144,6 +168,29 @@ export default new Vuex.Store({
         .set(payload)
         .then(() => {
           router.push("/");
+        });
+    },
+    variationChanged({ commit, state }, payload) {
+      db.ref(`lamp/${state.user.lamp_id}`)
+        .child("variasi")
+        .set(payload);
+      commit("setVariation", payload);
+    },
+    setPower({ commit, state }, payload) {
+      db.ref(`lamp/${state.user.lamp_id}`)
+        .child("power")
+        .set(payload);
+      commit("setPower", payload);
+    },
+    sendFeedback({ commit, state }, payload) {
+      commit("setLoading", true);
+      db.ref(`feedback/${state.uid}`)
+        .set(payload)
+        .then(() => {
+          router.push("/");
+          setTimeout(() => {
+            commit("setLoading", false);
+          }, 500);
         });
     },
     // getData({ commit }) {

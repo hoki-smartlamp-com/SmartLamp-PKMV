@@ -3,11 +3,7 @@
     <template v-if="!this.$store.state.user">
       <div class="relative">
         <div class="vertical-center">
-          <img
-            alt="Jintarkop"
-            class="main-logo"
-            src="../assets/empty-data.svg"
-          />
+          <img alt="Logo" class="main-logo" src="../assets/empty-data.svg" />
           <h3>Oops! Data kosong...</h3>
         </div>
       </div>
