@@ -57,6 +57,22 @@
         </v-btn>
         <v-btn
           block
+          light
+          large
+          color="green lighten-3"
+          target="_blank"
+          class="mb-4 text-none"
+          href="https://www.tokopedia.com/hokismartlampofficial"
+          ><img
+            src="@/assets/tokopedia.png"
+            alt="icon-tokopedia"
+            srcset="@/assets/tokopedia.png"
+            height="23px"
+            class="mr-1"
+          />Hokismartlamp_official
+        </v-btn>
+        <v-btn
+          block
           dark
           large
           color="blue darken-3"
