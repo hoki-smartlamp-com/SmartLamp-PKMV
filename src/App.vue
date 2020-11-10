@@ -2,32 +2,35 @@
   <v-app class="red">
     <offline v-if="!isOnline" />
     <template v-else>
-      <v-app-bar
-        hide-on-scroll
-        app
-        elevation="0"
-        v-if="showAppBar"
-        color="#121212"
-      >
+      <v-app-bar hide-on-scroll app elevation="0" color="#121212">
         <!-- <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon> -->
 
-        <v-btn icon large v-if="showBackButton" @click="goBack()">
+        <v-btn icon large v-if="showBackButton && showAppBar" @click="goBack()">
           <v-icon v-if="cantGoBack">mdi-home</v-icon>
           <v-icon v-else>mdi-chevron-left</v-icon>
         </v-btn>
 
         <v-toolbar-title
+          v-if="showAppBar"
           :class="
             $route.path == '/' || $route.path == '/menu' ? 'text-uppercase' : ''
           "
           >{{ routeName }}</v-toolbar-title
         >
         <v-spacer />
+        <!-- 
+        <v-btn icon to="/about" 
+          <v-icon></v-icon>
+        </v-btn> -->
+
+        <v-btn icon to="/about" v-if="!showAppBar">
+          <v-icon large>mdi-information-outline</v-icon>
+        </v-btn>
 
         <v-btn
           icon
           @click="$store.dispatch('setModalColor')"
-          v-if="$route.path == '/'"
+          v-else-if="$route.path == '/'"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

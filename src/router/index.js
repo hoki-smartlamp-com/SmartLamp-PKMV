@@ -50,6 +50,9 @@ const routerOptions = [
     path: "/about",
     name: "About",
     component: "About",
+    meta: {
+      withoutAuth: true,
+    },
   },
 ];
 
@@ -70,7 +73,11 @@ router.beforeResolve((to, from, next) => {
   const withoutAuth = to.matched.some((record) => record.meta.withoutAuth);
   const isLoggedIn = firebase.auth().currentUser;
 
-  if ((withoutAuth && !isLoggedIn) || (!withoutAuth && isLoggedIn)) {
+  if (
+    (withoutAuth && !isLoggedIn) ||
+    (!withoutAuth && isLoggedIn) ||
+    (withoutAuth && to.path == "/about")
+  ) {
     next();
   } else if (withoutAuth && isLoggedIn) {
     // to root
