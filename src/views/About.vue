@@ -18,18 +18,50 @@
           dark
           large
           color="red accent-3"
-          class="mb-4"
+          target="_blank"
+          class="mb-4 text-none"
           href="https://www.instagram.com/hoki_smartlamp/"
-          ><v-icon>mdi-instagram</v-icon>@hoki_smartlamp</v-btn
+          ><v-icon class="mr-1">mdi-instagram</v-icon>@hoki_smartlamp</v-btn
         >
         <v-btn
           block
           dark
           large
           color="green darken-2"
-          class="mb-4"
+          target="_blank"
+          class="mb-4 text-none"
           href="https://wa.me/6282141226299"
-          ><v-icon>mdi-whatsapp</v-icon>+62 82141226299
+          ><v-icon class="mr-1">mdi-whatsapp</v-icon>+62 82141226299
+        </v-btn>
+        <v-btn
+          block
+          dark
+          large
+          color="deep-orange"
+          target="_blank"
+          class="mb-4 text-none"
+          href="https://shopee.co.id/hokismartlamp.official"
+          ><v-icon class="mr-1">mdi-whatsapp</v-icon>hokismartlamp.official
+        </v-btn>
+        <v-btn
+          block
+          dark
+          large
+          color="blue darken-3"
+          target="_blank"
+          class="mb-4 text-none"
+          href="https://www.facebook.com/hoki.smartlamp"
+          ><v-icon class="mr-1">mdi-facebook</v-icon>hoki_smartlamp
+        </v-btn>
+        <v-btn
+          block
+          dark
+          large
+          color="amber accent-4"
+          target="_blank"
+          class="mb-4 text-none"
+          href="mailto:hokismartlamp@gmail.com "
+          ><v-icon class="mr-1">mdi-email</v-icon>hokismartlamp@gmail.com
         </v-btn>
       </div>
     </v-card>
