@@ -25,6 +25,7 @@ export default new Vuex.Store({
     },
     variasi: 0,
     power: false,
+    feedback: {},
   },
   mutations: {
     setUser(state, payload) {
@@ -53,6 +54,9 @@ export default new Vuex.Store({
     },
     setPower(state, payload) {
       state.power = payload;
+    },
+    setFeedback(state, payload) {
+      state.feedback = payload;
     },
     // setUsername(state, payload) {
     //   state.user.username = payload;
@@ -150,8 +154,10 @@ export default new Vuex.Store({
       firebase
         .auth()
         .signOut()
-        .then(() => router.replace("/login"));
-      commit("setUser", null);
+        .then(() => {
+          router.replace("/login");
+          commit("setUser", null);
+        });
     },
     setColor({ dispatch, state }, payload) {
       db.ref(`lamp/${state.user.lamp_id}`)
@@ -184,14 +190,65 @@ export default new Vuex.Store({
     },
     sendFeedback({ commit, state }, payload) {
       commit("setLoading", true);
-      db.ref(`feedback/${state.uid}`)
-        .set(payload)
+      db.ref("feedback")
+        .push({
+          email: state.user.email,
+          username: state.user.username,
+          title: payload.title,
+          body: payload.body,
+        })
         .then(() => {
           router.push("/");
           setTimeout(() => {
             commit("setLoading", false);
           }, 500);
         });
+    },
+    addNewLamp({ commit }, payload) {
+      commit("setLoading", true);
+      db.ref(`lamp/${payload}`)
+        .once("value")
+        .then(function(res) {
+          if (!res.val()) {
+            db.ref(`lamp/${payload}`)
+              .set({
+                power: true,
+                variasi: 5,
+                warna: {
+                  red: 255,
+                  green: 255,
+                  blue: 255,
+                  bright: 100,
+                },
+              })
+              .then(() => {
+                commit("setLoading", false);
+              });
+          } // null
+          else {
+            // console.log(key);
+            commit(
+              "setError",
+              "Maaf, Kode seri lampu yang anda masukkan sudah ada"
+            );
+            commit("setLoading", false);
+          }
+        });
+    },
+    getFeedback({ commit }) {
+      return new Promise((resolve) => {
+        db.ref("feedback").on("value", (data) => {
+          commit("setFeedback", data.val());
+          resolve(data.val());
+        });
+      });
+    },
+    getLampId() {
+      return new Promise((resolve) => {
+        db.ref("lamp").on("value", (res) => {
+          resolve(res.val());
+        });
+      });
     },
     // getData({ commit }) {
     //   db.ref("aturData").on("value", (data) => {

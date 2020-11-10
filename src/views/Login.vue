@@ -44,11 +44,11 @@
             </v-card-text>
           </v-card>
         </v-dialog>
-        <v-btn block dark large color="#3076BD" class="mt-5 mb-4" type="submit"
+        <v-btn block dark large color="#3076BD" class="mt-5 mb-3" type="submit"
           >Login</v-btn
         >
-        <span>Atau</span>
-        <v-btn block dark large color="#EA6A00" class="mt-4" to="/register"
+        <span class="text-caption">Atau</span>
+        <v-btn block dark large color="#EA6A00" class="mt-3" to="/register"
           >Register</v-btn
         >
       </v-form>

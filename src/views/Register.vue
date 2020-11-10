@@ -74,11 +74,11 @@
             </v-card-text>
           </v-card>
         </v-dialog>
-        <v-btn block dark large color="#EA6A00" class="mt-5 mb-4" type="submit"
+        <v-btn block dark large color="#EA6A00" class="mt-5 mb-3" type="submit"
           >Register</v-btn
         >
-        <span>Sudah punya akun?</span>
-        <v-btn block dark large color="#3076BD" class="mt-4" to="/login"
+        <span class="text-caption">Sudah punya akun?</span>
+        <v-btn block dark large color="#3076BD" class="mt-3" to="/login"
           >Login</v-btn
         >
       </v-form>
