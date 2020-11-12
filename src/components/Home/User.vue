@@ -199,7 +199,12 @@ export default {
         this.$store.commit("setColor", val);
       },
       get() {
-        return this.$store.state.color;
+        return {
+          red: this.$store.state.color.red,
+          green: this.$store.state.color.green,
+          blue: this.$store.state.color.blue,
+          bright: this.$store.state.color.bright
+        };
       }
     },
     jenisVariasi: {

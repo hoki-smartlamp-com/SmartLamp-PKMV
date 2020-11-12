@@ -47,12 +47,19 @@
       </v-app-bar>
 
       <v-main style="padding: 56px 0px;">
-        <Loading v-if="loading" />
+        <Loading v-if="loading && $route.path != '/'" />
         <router-view />
-        <v-snackbar v-model="snackbar">
+        <v-snackbar
+          v-model="snackbar"
+          v-if="
+            $route.path != '/login' &&
+              $route.path != '/register' &&
+              $route.path != '/setting'
+          "
+        >
           {{ snackbarMessage }}
           <template v-slot:action="{ attrs }">
-            <v-btn color="orange" text v-bind="attrs" @click="snackbar = false"
+            <v-btn color="#EA6A00" text v-bind="attrs" @click="snackbar = false"
               >Close</v-btn
             >
           </template>
@@ -109,8 +116,12 @@ export default {
       this.showBar();
       this.canGoBack();
       this.changeTitleName();
-
-      // console.log(this.$store.state.user);
+    },
+    error(val) {
+      if (val) {
+        this.snackbarMessage = val;
+        this.snackbar = true;
+      }
     }
   },
 
@@ -123,6 +134,9 @@ export default {
   computed: {
     loading() {
       return this.$store.state.loading;
+    },
+    error() {
+      return this.$store.state.error;
     }
   },
 

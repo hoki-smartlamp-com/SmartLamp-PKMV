@@ -8,6 +8,9 @@
         </div>
       </div>
     </template>
+    <v-alert class="error" v-if="alert">
+      <small>{{ error }}</small>
+    </v-alert>
     <v-form ref="form" @submit.prevent="submit" lazy-validation>
       <v-text-field
         v-model="user.username"
@@ -53,15 +56,30 @@ export default {
       username: "",
       lamp_id: ""
     },
-    dialog: false
+    dialog: false,
+    alert: false
   }),
   mounted() {
     this.user = this.$store.state.user;
   },
-  computed: {},
+  computed: {
+    error() {
+      return this.$store.state.error;
+    }
+  },
   watch: {
     "$store.state.user": function(e) {
       this.user = e;
+    },
+    error(value) {
+      if (value) {
+        this.alert = true;
+      }
+    },
+    alert(value) {
+      if (!value) {
+        this.$store.commit("setError", null);
+      }
     }
   },
   methods: {
@@ -71,6 +89,7 @@ export default {
       }
     },
     agreeSubmit() {
+      this.dialog = false;
       this.$store.dispatch("updateUser", this.user);
     }
   }

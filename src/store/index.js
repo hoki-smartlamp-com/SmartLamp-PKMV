@@ -73,6 +73,7 @@ export default new Vuex.Store({
         .signInWithEmailAndPassword(payload.email, payload.password)
         .then((firebaseUser) => {
           dispatch("getUserData", firebaseUser.user.uid);
+          commit("setError", null);
         })
         .catch((err) => {
           commit("setLoading", false);
@@ -109,7 +110,6 @@ export default new Vuex.Store({
                   .then(() => {
                     commit("setLoading", false);
                     router.push("/login");
-                    commit("setLoading", false);
                   });
                 firebase.auth().signOut();
               })
@@ -120,7 +120,7 @@ export default new Vuex.Store({
         });
     },
     getUserData({ commit }, payload) {
-      commit("setLoading", true);
+      // commit("setLoading", true);
       db.ref("users")
         .child(payload)
         .on(
@@ -129,12 +129,18 @@ export default new Vuex.Store({
             commit("setUser", res.val());
 
             db.ref(`lamp/${res.val().lamp_id}`).on("value", (data) => {
-              commit("setColor", data.val().warna);
-              commit("setVariation", data.val().variasi);
-              commit("setPower", data.val().power);
+              if (data.exists()) {
+                commit("setColor", data.val().warna);
+                commit("setVariation", data.val().variasi);
+                commit("setPower", data.val().power);
+                commit("setError", null);
+              } else
+                commit(
+                  "setError",
+                  "Oops! Kode Seri Lampu kamu tidak ditemukan, silahkan menghubungi admin untuk informasi lebih lanjut"
+                );
               commit("setUID", payload);
               commit("setLoading", false);
-              commit("setError", null);
             });
 
             if (router.history.current.path == "/login") {
@@ -144,8 +150,9 @@ export default new Vuex.Store({
           (e) => console.log(e)
         );
     },
-    autoSignIn({ state, dispatch }, payload) {
+    autoSignIn({ commit, state, dispatch }, payload) {
       if (!state.user) {
+        commit("setLoading", true);
         dispatch("getUserData", payload.uid);
         // commit("setUser", { email: payload.uid });
       }
@@ -155,8 +162,12 @@ export default new Vuex.Store({
         .auth()
         .signOut()
         .then(() => {
-          router.replace("/login");
           commit("setUser", null);
+          commit("setVariation", null);
+          commit("setPower", null);
+          commit("setError", null);
+          commit("setUID", null);
+          router.replace("/login");
         });
     },
     setColor({ dispatch, state }, payload) {
@@ -169,11 +180,17 @@ export default new Vuex.Store({
       commit("setModalColor");
     },
     updateUser({ commit, state }, payload) {
-      commit("updateUser", payload);
-      db.ref(`users/${state.uid}`)
-        .set(payload)
-        .then(() => {
-          router.push("/");
+      db.ref(`lamp/${payload.lamp_id}`)
+        .once("value")
+        .then(function(res) {
+          if (res.exists()) {
+            commit("updateUser", payload);
+            db.ref(`users/${state.uid}`)
+              .set(payload)
+              .then(() => {
+                router.push("/");
+              });
+          } else commit("setError", "Oops! Kode Seri Lampu yang anda masukkan salah");
         });
     },
     variationChanged({ commit, state }, payload) {

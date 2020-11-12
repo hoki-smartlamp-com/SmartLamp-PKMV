@@ -1,8 +1,9 @@
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
+#include <Hash.h>
+#include <ESPAsyncWebServer.h>
+#include <ESPAsyncTCP.h>
 #include <Adafruit_NeoPixel.h>
 #include "FS.h"
-#include <DNSServer.h>
 #include <ArduinoJson.h>
 #include "FirebaseESP8266.h"
 
@@ -22,28 +23,26 @@ const char *ssid = "Hoki_SmartLamp";
 unsigned char red, green, blue, bright;
 String wifi_ssid, wifi_password, wifi_status;
 bool power = true;
-int variasi = -1; // 0 = tanpa variasi
+bool wifi_try = false;
+bool turnOnWifi = false;
+bool wifiOn = false;
+int variasi = 6; // 0 = tanpa variasi
+int retryCounter = 0;
 
-char output[128];
-char readPower[128];
 char setWifi[128];
 
 String lamp_id = "112opso"; // ID Lampu
 FirebaseJson json_color;
 
-//StaticJsonBuffer<200> json_data;
-DynamicJsonDocument json_data(200);
-DynamicJsonDocument json_power(200);
 DynamicJsonDocument json_wifi(200);
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_PIX, D4, NEO_GRB + NEO_KHZ800);
 
-ESP8266WebServer server(80);
+AsyncWebServer server(80);
 
 void setup()
 {
   Serial.begin(115200);
-  WiFi.mode(WIFI_AP); // Mode AP/Hotspot
   WiFi.softAP(ssid);
   wifi_status = "disconnected";
   Serial.println(wifi_status);
@@ -64,127 +63,52 @@ void setup()
   blue = 255;
   bright = 50;
 
-  server.on("/", []() {
-    server.send(200, "text/html", index_html);
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/html", index_html);
   });
-  server.on("/sw.js", []() {
-    server.send_P(200, "application/javascript", sw_js);
+  server.on("/sw.js", [](AsyncWebServerRequest *request){
+    request->send_P(200, "application/javascript", sw_js);
   });
-  server.on("/manifest.json", []() {
-    server.send(200, "application/json", manifest_json);
+  server.on("/manifest.json", [](AsyncWebServerRequest *request){
+    request->send_P(200, "application/json", manifest_json);
   });
-  server.on("/app.js", []() {
-    server.send(200, "application/javascript", app_js);
+  server.on("/app.js", [](AsyncWebServerRequest *request){
+    request->send_P(200, "application/javascript", app_js);
   });
-  server.on("/data", HTTP_GET, []() {
-    setJson(red, green, blue, bright);
-
-    server.send(200, "application/json", output);
-  });
-  server.on("/power", HTTP_GET, []() {
-    json_power["power"] = power;
-    serializeJson(json_power, readPower);
-
-    server.send(200, "application/json", readPower);
-  });
-  server.on("/wifi", HTTP_GET, []() {
+  server.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request){
     json_wifi["ssid"] = wifi_ssid;
     json_wifi["password"] = wifi_password;
     json_wifi["status"] = wifi_status;
     serializeJson(json_wifi, setWifi);
 
-    server.send(200, "application/json", setWifi);
+    request->send_P(200, "application/json", setWifi);
   });
-  server.on("/data/set", HTTP_POST, []() {
-    String RMsg = server.arg("red");
-    String GMsg = server.arg("green");
-    String BMsg = server.arg("blue");
-    String brightMsg = server.arg("bright");
+  server.on("/wifi/set", HTTP_POST, [](AsyncWebServerRequest * request) {
+    String ssidMsg = request->getParam("ssid", true)->value();
+    String passwordMsg = request->getParam("password", true)->value();
 
-    if (!server.hasArg("red") || RMsg == NULL)
+    if (request->hasParam("ssid", true))
     {
-      server.send(400, "text/plain", "400: Invalid Request");
-      return;
-    }
-    else
-    {
-      variasi = 0;
-      
-      red = RMsg.toInt();
-      green = GMsg.toInt();
-      blue = BMsg.toInt();
-      bright = brightMsg.toInt();
-      setJson(red, green, blue, bright);
-      setFirebase(red, green, blue, bright);
-      toFirstPage();
-    }
-  });
-  server.on("/power/set", HTTP_POST, []() {
-    String powerMsg = server.arg("power");
-
-    if (!server.hasArg("power") || powerMsg == NULL)
-    {
-      server.send(400, "text/plain", "400: Invalid Request");
-      return;
-    }
-    else
-    {
-      power = (powerMsg == "false") ? false : true;
-      Firebase.setBool(firebase_power, "/lamp/" + lamp_id + "/power", power);
-      toFirstPage();
-    }
-  });
-  server.on("/wifi/set", HTTP_POST, []() {
-    String ssidMsg = server.arg("ssid");
-    String passwordMsg = server.arg("password");
-
-    if (!server.hasArg("ssid") || ssidMsg == NULL)
-    {
-      server.send(400, "text/plain", "400: Invalid Request");
-      return;
-    }
-    else
-    {
+      Serial.println(ssidMsg);
+      Serial.println(passwordMsg);
       wifi_ssid = ssidMsg;
       wifi_password = passwordMsg;
-      toFirstPage();
-
-      WiFi.begin(wifi_ssid, wifi_password);
-      int second = 0;
-      int stats;
-      while (WiFi.status() != WL_CONNECTED)
-      {
-        stats = WiFi.status();
-        wifi_status = "connecting";
-        Serial.println(wifi_status);
-        delay(1000);
-        second++;
-        if (stats == 1 || second >= 10)
-        {
-          toFirstPage();
-          break;
-        }
-      }
-      Serial.println(stats);
-      if (stats == 1 || second >= 10)
-      {
-        wifi_status = "disconnected";
-      }
-      else
-      {
-        wifi_status = "connected";
-      }
-      Serial.println(wifi_status);
+      wifi_try = true;
+      wifi_status = "connecting";
     }
+    else return;
+    String redirect = "<html><script>window.location.href = \"/\";</script></html>";
+    request->send(200, "text/html", redirect);
   });
-  server.on("/favicon.ico", HTTP_GET, []() {
-    handleFileRead("/favicon.ico", "image/png");
+  
+  server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/favicon.ico", "image/png");
   });
-  server.on("/img/icons-192.png", HTTP_GET, []() {
-    handleFileRead("/icons-192.png", "image/png");
+  server.on("/img/icons-192.png", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/icons-192.png", "image/png");
   });
-  server.on("/img/icons-512.png", HTTP_GET, []() {
-    handleFileRead("/icons-512.png", "image/png");
+  server.on("/img/icons-512.png", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/icons-512.png", "image/png");
   });
   server.begin();
   pixels.begin();
@@ -197,9 +121,37 @@ void setup()
 }
 
 void loop() {
-  server.handleClient();
-
-  getFirebaseData();
+  if(turnOnWifi && !wifiOn) {
+    WiFi.softAP(ssid);
+    Serial.println("AP Hidup");
+    wifiOn = true;
+    turnOnWifi = true;
+  }
+  if(wifi_try) {
+    WiFi.begin(wifi_ssid, wifi_password);
+    int second = 0;
+    int stats;
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      stats = WiFi.status();
+      wifi_status = "connecting";
+      Serial.println(wifi_status);
+      delay(1000);
+      second++;
+      if (stats == 1 || second >= 10) break;
+    }
+    if (stats == 1 || second >= 10) wifi_status = "disconnected";
+    else {
+      wifi_status = "connected";
+      WiFi.softAPdisconnect(true);
+      wifiOn = false;
+      turnOnWifi = false;
+      Serial.println("AP Mati");
+    }
+    Serial.println(wifi_status);
+    wifi_try = false;
+  }
+  if(wifi_status == "connected") getFirebaseData();
 
   switch(variasi) {
     case 0:
@@ -244,31 +196,6 @@ void loop() {
   delay(500);
 }
 
-void setJson(int r, int g, int b, int a) {
-  json_data["red"] = r;
-  json_data["green"] = g;
-  json_data["blue"] = b;
-  json_data["bright"] = a;
-
-  serializeJson(json_data, output);
-}
-
-bool handleFileRead(String path, String type) {
-  if (SPIFFS.exists(path)) {
-    File file = SPIFFS.open(path, "r");
-    server.streamFile(file, type);
-    server.send(200);
-    file.close();
-    return true;
-  }
-  return false;
-}
-
-void toFirstPage() {
-  String redirect = "<html><script>window.location.href = \"/\";</script></html>";
-  server.send(200, "text/html", redirect);
-}
-
 void beginFirebaseStream() {
   if (!Firebase.beginStream(firebaseData, "/lamp/" + lamp_id + "/warna")) {
       Serial.println("------------------------------------");
@@ -276,7 +203,7 @@ void beginFirebaseStream() {
       Serial.println("REASON: " + firebaseData.errorReason());
       Serial.println("------------------------------------");
       Serial.println();
-      variasi = -1;
+//      variasi = -1;
   }
   if (!Firebase.beginStream(firebase_power, "/lamp/" + lamp_id + "/power")) {
       Serial.println("------------------------------------");
@@ -304,7 +231,12 @@ void getFirebaseData() {
       Serial.println("FAILED");
       Serial.println("REASON: " + firebaseData.errorReason());
       Serial.println();
-      variasi = -1;
+      retryCounter++;
+      if(retryCounter >= 6) {
+        turnOnWifi = true;
+        wifi_status = "disconnected";
+      }
+  //      variasi = -1;
   }
   
   if (Firebase.get(firebase_power, "/lamp/" + lamp_id + "/power")) {
